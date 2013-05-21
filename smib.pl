@@ -6,6 +6,7 @@ use warnings;
 use POE qw(Component::IRC);
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
+use Data::Dumper; #for test only
 
 my $nickname = 'smibtest';
 my $ircname  = 'So Make It Bot';
@@ -19,7 +20,7 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
                                      server  => $server,
 ) or die "Cannot make POE-IRC object: $!";
 
-POE::Session->create(package_states => [main => [ qw(_default _start irc_001 irc_public) ],],
+POE::Session->create(package_states => [main => [ qw(_default _start irc_001 irc_public irc_msg) ],],
                      heap           => { irc => $irc },);
 
 $poe_kernel->run();
@@ -52,6 +53,7 @@ sub irc_001 {
 
 # like when someone says somthing in a channel
 sub irc_public {
+  print Dumper(@_);
   my ($sender, $who, $where, $what) = @_[SENDER, ARG0 .. ARG2];
   my $nick = ( split /!/, $who )[0];
   my $channel = $where->[0];
@@ -63,7 +65,7 @@ sub irc_public {
     my $command = $1;
     my @commands = capture('find', "$programsdir", '-type', 'f', '-name', "$command\.*");
     if (@commands < 1) {
-      $irc->yield( privmsg => $channel => "Sorry $nick, I don't have a $command command." );
+      $irc->yield( privmsg => $channel  => "Sorry $nick, I don't have a $command command." );
       return;
     }
     my $runcommand = shift @commands;
@@ -79,6 +81,40 @@ sub irc_public {
   }
   for my $line (@output) {
     $irc->yield( privmsg => $channel => $line );
+  }
+  return;
+}
+
+# like when someone says somthing with /msg
+sub irc_msg {
+  print Dumper(@_); 
+  my ($sender, $who, $where, $what) = @_[SENDER, ARG0 .. ARG2];
+  my $nick = ( split /!/, $who )[0];
+  my $channel = $where->[0];
+
+  #this launches commands in PM context
+  my @output;
+  if ($what =~ m/\?(\w+) {0,1}(.*)/) {
+    #damn it Benjie I told you file extensions were daft
+    my $command = $1;
+    my @commands = capture('find', "$programsdir", '-type', 'f', '-name', "$command\.*");
+    if (@commands < 1) {
+      $irc->yield( privmsg => $nick => "Sorry, I don't have a $command command." );
+      return;
+    }
+    my $runcommand = shift @commands;
+    my $argline = printable($2);
+    chomp $runcommand;
+    chdir $programsdir; # we probably don't ever need another working directory
+    eval {
+      @output = capture("$runcommand", "$nick", 'null', "$nick", "$argline"); # this is a big legacy to emulate old smib
+    };
+    if ($@) {
+      $irc->yield( privmsg => $nick => "Sorry, $command is on fire." );
+    }
+  }
+  for my $line (@output) {
+    $irc->yield( privmsg => $nick => $line );
   }
   return;
 }
