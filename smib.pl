@@ -56,7 +56,7 @@ sub irc_public {
   my $nick = ( split /!/, $who )[0];
   my $channel = $where->[0];
 
-  #this launches commands in public context
+  #this launches commands in channel context
   my @output;
   if ($what =~ m/\?(\w+) {0,1}(.*)/) {
     #damn it Benjie I told you file extensions were daft
@@ -66,11 +66,16 @@ sub irc_public {
       $irc->yield( privmsg => $channel => "Sorry $nick, I don't have a $command command." );
       return;
     }
-    $command = shift @commands;
+    my $runcommand = shift @commands;
     my $argline = printable($2);
-    chomp $command;
-    chdir $programsdir;
-    @output = capture("$command", "$nick", "$channel", "$channel", "$argline"); #capture does not invoke a shell if it has more than one argument
+    chomp $runcommand;
+    chdir $programsdir; # we probably don't ever need another working directory
+    eval {
+      @output = capture("$runcommand", "$nick", "$channel", "$channel", "$argline"); #capture does not invoke a shell if it has more than one argument
+    };
+    if ($@) {
+      $irc->yield( privmsg => $channel => "Sorry $nick, $command is on fire." );
+    }
   }
   for my $line (@output) {
     $irc->yield( privmsg => $channel => $line );
