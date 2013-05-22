@@ -68,7 +68,7 @@ sub irc_public {
 
   #this launches ?commands said in a channel
   my @output;
-  if ($what =~ m/\?(\w+) {0,1}(.*)/) {
+  if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
     print &timestamp . "Caught irc_public as ?command channel: '$channel' who: '$who' what: '$what'\n";
 
     #damn it Benjie I told you file extensions were daft, now I have to do more work
@@ -88,6 +88,8 @@ sub irc_public {
     my $runcommand = shift @commands;
     chomp $runcommand;
 
+    # Take what the user typed after the command less the space and escape what we need to.
+    # This is not a security feature.
     my $argline = printable($2);
 
     # the scripts need their working directory to be the programsdir
@@ -121,7 +123,7 @@ sub irc_msg {
 
   #this launches ?commands said in PM to us, we reply via PM
   my @output;
-  if ($what =~ m/\?(\w+) {0,1}(.*)/) {
+  if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
     print &timestamp . "Caught irc_msg as ?command channel: '$channel' who: '$who' what: '$what'\n";
 
     #find sctips with extensions
