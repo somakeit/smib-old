@@ -1,3 +1,6 @@
+# Service file for use with systemd
+# Configure your options and copy this file to /etc/systemd/system/smib.service
+# Output will be sent to syslog
 [Unit]
 Description=So Make It Bot
 After=network.target

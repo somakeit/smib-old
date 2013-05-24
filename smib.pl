@@ -42,7 +42,7 @@ sub update_commands {
     
     #mark list as up to date
     $commands_time = (stat(DIRHANDLE))[9]; 
-    print localtime . " Updated ?commands hash\n";
+    print "Updated ?commands hash\n";
   }
   closedir DIRHANDLE;
   return;
@@ -97,7 +97,7 @@ sub irc_public {
   #this launches ?commands said in a channel
   my @output;
   if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
-    print localtime() . " Caught irc_public as ?command channel: '$channel' who: '$who' what: '$what'\n";
+    print "Caught irc_public as ?command channel: '$channel' who: '$who' what: '$what'\n";
     
     my $command = $1;
 
@@ -146,7 +146,7 @@ sub irc_msg {
   #this launches ?commands said in PM to us, we reply via PM
   my @output;
   if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
-    print localtime() . " Caught irc_msg as ?command channel: '$channel' who: '$who' what: '$what'\n";
+    print "Caught irc_msg as ?command channel: '$channel' who: '$who' what: '$what'\n";
 
     my $command = $1;
 
@@ -197,7 +197,7 @@ sub _default {
       push ( @output, "'$arg'" );
     }
   }
-  print localtime() . ' ';
+  print ' ';
   print join ' ', @output, "\n";
   return;
 }
