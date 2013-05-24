@@ -1,0 +1,13 @@
+[Unit]
+Description=So Make It Bot
+After=network.target
+
+[Service]
+WorkingDirectory=/home/irccat/
+ExecStart=/home/irccat/smib/smib.pl
+User=irccat
+Group=irccat
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
