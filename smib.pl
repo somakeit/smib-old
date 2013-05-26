@@ -155,7 +155,7 @@ sub irc_msg {
 
     #see if the command exists
     if (!$all_commands->{$command}) {
-      $irc->yield( privmsg => $channel  => "Sorry, I don't have a $command command." );
+      $irc->yield( privmsg => $nick  => "Sorry, I don't have a $command command." );
       return;
     }
 
@@ -174,7 +174,7 @@ sub irc_msg {
       @output = capture($all_commands->{$command}, $nick, 'null', $nick, $argline);
     };
     if ($@) {
-      $irc->yield( privmsg => $channel => "Sorry, $command is on fire." );
+      $irc->yield( privmsg => $nick => "Sorry, $command is on fire." );
     }
   }
   for my $line (@output) {
