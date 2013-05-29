@@ -56,7 +56,9 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
                                      server  => $server,
 ) or die "Cannot make POE-IRC object: $!";
 
-POE::Session->create(package_states => [main => [ qw(_default _start irc_001 irc_public irc_msg lag_o_meter) ],],
+# For debug, add _default to the list of evernts to catch, it can show what event your new feature might
+# want to use. Do the thing in IRC then view the log.
+POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter) ],],
                      heap           => { irc => $irc },);
 
 #and finally, start it
