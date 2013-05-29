@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use POE qw(Component::IRC);
+use POE qw(Component::IRC Component::IRC::Plugin::Connector);
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
 
@@ -56,7 +56,7 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
                                      server  => $server,
 ) or die "Cannot make POE-IRC object: $!";
 
-POE::Session->create(package_states => [main => [ qw(_default _start irc_001 irc_public irc_msg) ],],
+POE::Session->create(package_states => [main => [ qw(_default _start irc_001 irc_public irc_msg lag_o_meter) ],],
                      heap           => { irc => $irc },);
 
 #and finally, start it
@@ -69,6 +69,11 @@ sub _start {
   my $irc = $heap->{irc};
 
   $irc->yield( register => 'all' );
+
+  # load the connector plugin to re-connect us whenever
+  $heap->{connector} = POE::Component::IRC::Plugin::Connector->new();
+  $irc->plugin_add( 'Connector' => $heap->{connector} );
+
   $irc->yield( connect => { } );
   return;
 }
@@ -199,5 +204,12 @@ sub _default {
   }
   print ' ';
   print join ' ', @output, "\n";
+  return;
+}
+
+sub lag_o_meter {
+  my ($kernel,$heap) = @_[KERNEL,HEAP];
+  print 'Lag: ' . $heap->{connector}->lag() . "\n";
+  $kernel->delay( 'lag_o_meter' => 60 );
   return;
 }
