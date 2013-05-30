@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use POE qw(Component::IRC Component::IRC::Plugin::Connector);
+use POE qw(Component::IRC Component::IRC::Plugin::Connector Component::IRC::Plugin::NickServID);
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
 
