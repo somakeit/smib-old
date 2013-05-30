@@ -76,6 +76,11 @@ sub _start {
   $heap->{connector} = POE::Component::IRC::Plugin::Connector->new();
   $irc->plugin_add( 'Connector' => $heap->{connector} );
 
+  # load the nickservid plugin, it registers with nickserv whenever
+  $irc->plugin_add( 'NickServID', POE::Component::IRC::Plugin::NickServID->new(
+    Password => 'dont_check_me_in'
+  ));
+
   $irc->yield( connect => { } );
   return;
 }
