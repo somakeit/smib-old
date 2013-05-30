@@ -7,11 +7,12 @@ use POE qw(Component::IRC Component::IRC::Plugin::Connector);
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
 
-my $nickname = 'smib';
-my $ircname  = 'So Make It Bot';
+my $nickname    = 'smib';
+my $password    = 'do_not_check_me_in';
+my $ircname     = 'So Make It Bot';
 my $programsdir = '/home/irccat/scripts/';
-my $server   = 'holmes.freenode.net';
-my @channels = ('#smibtest', '#southackton', '#somakeit');
+my $server      = 'holmes.freenode.net';
+my @channels    = ('#smibtest', '#southackton', '#somakeit');
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
@@ -77,9 +78,7 @@ sub _start {
   $irc->plugin_add( 'Connector' => $heap->{connector} );
 
   # load the nickservid plugin, it registers with nickserv whenever
-  $irc->plugin_add( 'NickServID', POE::Component::IRC::Plugin::NickServID->new(
-    Password => 'dont_check_me_in'
-  ));
+  $irc->plugin_add( 'NickServID', POE::Component::IRC::Plugin::NickServID->new( Password => $password ));
 
   $irc->yield( connect => { } );
   return;
