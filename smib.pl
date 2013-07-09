@@ -110,14 +110,15 @@ sub irc_public {
   if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
     print "Caught irc_public as ?command channel: '$channel' who: '$who' what: '$what'\n";
     
-    my $command = $1;
+    my $lcasecmd = $1;
+    $lcasecmd = tr/A-Z/a-z/;
 
     #update the list of programs
     &update_commands;
 
     #see if the command exists
-    if (!$all_commands->{$command}) {
-      $irc->yield( privmsg => $channel  => "Sorry $nick, I don't have a $command command." );
+    if (!$all_commands->{$lcasecmd}) {
+      $irc->yield( privmsg => $channel  => "Sorry $nick, I don't have a $lcasecmd command." );
       return;
     }
 
@@ -133,10 +134,10 @@ sub irc_public {
     # more than one argument. We need to eval this, or we will exit if the command
     # returns non zero status.
     eval {
-      @output = capture($all_commands->{$command}, $nick, $channel, $channel, $argline);
+      @output = capture($all_commands->{$lcasecmd}, $nick, $channel, $channel, $argline);
     };
     if ($@) {
-      $irc->yield( privmsg => $channel => "Sorry $nick, $command is on fire." );
+      $irc->yield( privmsg => $channel => "Sorry $nick, $lcasecmd is on fire." );
     }
   }
   for my $line (@output) {
@@ -159,14 +160,15 @@ sub irc_msg {
   if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
     print "Caught irc_msg as ?command channel: '$channel' who: '$who' what: '$what'\n";
 
-    my $command = $1;
+    my $lcasecmd = $1;
+    $lcasecmd = tr/A-Z/a-z/;
 
     #update the list of programs
     &update_commands;
 
     #see if the command exists
-    if (!$all_commands->{$command}) {
-      $irc->yield( privmsg => $nick  => "Sorry, I don't have a $command command." );
+    if (!$all_commands->{$lcasecmd}) {
+      $irc->yield( privmsg => $nick  => "Sorry, I don't have a $lcasecmd command." );
       return;
     }
 
@@ -182,10 +184,10 @@ sub irc_msg {
     # more than one argument. We need to eval this, or we will exit if the command
     # returns non zero status.
     eval {
-      @output = capture($all_commands->{$command}, $nick, 'null', $nick, $argline);
+      @output = capture($all_commands->{$lcasecmd}, $nick, 'null', $nick, $argline);
     };
     if ($@) {
-      $irc->yield( privmsg => $nick => "Sorry, $command is on fire." );
+      $irc->yield( privmsg => $nick => "Sorry, $lcasecmd is on fire." );
     }
   }
   for my $line (@output) {
