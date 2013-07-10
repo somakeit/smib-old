@@ -111,7 +111,7 @@ sub irc_public {
     print "Caught irc_public as ?command channel: '$channel' who: '$who' what: '$what'\n";
     
     my $lcasecmd = $1;
-    $lcasecmd = tr/A-Z/a-z/;
+    $lcasecmd =~ tr/A-Z/a-z/;
 
     #update the list of programs
     &update_commands;
@@ -161,7 +161,7 @@ sub irc_msg {
     print "Caught irc_msg as ?command channel: '$channel' who: '$who' what: '$what'\n";
 
     my $lcasecmd = $1;
-    $lcasecmd = tr/A-Z/a-z/;
+    $lcasecmd =~ tr/A-Z/a-z/;
 
     #update the list of programs
     &update_commands;
