@@ -56,4 +56,3 @@ General
 Scripts are run with full privialages of the user which runs smib, appropriare care should be taken to vette scripts.
 Anything a script prints to STDERR will be printed to STDERR by smib.
 Script can also mean compiled program.
-
