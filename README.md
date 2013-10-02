@@ -32,7 +32,7 @@ Yor script will be run with these arguments in the case of a pownce:
  * $2 - Channel, the channel they spoke in or joined, or 'null' if it was a /msg.
  * $3 - Where, the channel name or user name of where the user spoke or joined.
  * $4 - What was said, or 'null'.
- * $5 - 'null'.
+ * $5 - The command.
  * $6 - 'pownce'.
 
 Anything your script prints to STDOUT will be said where the command was invoked (channel or as /msg to the user) (there is flood control).
@@ -45,11 +45,11 @@ Your script will be called with these arguments in the case of a log:
  * $1 - User, Nick of the person who spoke.
  * $2 - Channel, the channel it was said in, or 'null' if it was a /msg.
  * $3 - Where, the channel name or user name of where it was said.
- * $4 - What was said, excluding the command.
- * $5 - 'null'.
+ * $4 - What was said.
+ * $5 - The command.
  * $6 - 'log'.
 
-Anything your script prints to STDOUT will be printed to STDOUT by smib.
+Anything your script prints to STDOUT will be said where the command was invoked by smib.
 
 General
 -------

@@ -7,49 +7,61 @@ use POE qw(Component::IRC Component::IRC::Plugin::Connector Component::IRC::Plug
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
 
-my $nickname    = 'smib';
+#my $nickname    = 'smib';
+my $nickname    = 'xbmc';
 my $password    = 'do_not_check_me_in';
 my $ircname     = 'So Make It Bot';
-my $programsdir = '/home/irccat/scripts/';
+#my $programsdir = '/home/irccat/scripts/';
+my $programsdir = '/home/xbmc/irccat-commands/';
 my $server      = 'holmes.freenode.net';
-my @channels    = ('#smibtest', '#southackton', '#somakeit');
+my @channels    = ('#smibtest');#, '#southackton', '#somakeit');
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
 
-#this maintains a list of commands we can use
-my $all_commands = {};
-my $commands_time = 0;
-sub update_commands {
-  opendir DIRHANDLE, $programsdir or die "Can't open programs direstory '$programsdir'";
-  if ((stat(DIRHANDLE))[9] > $commands_time) {
-    #build the hashref, the last command.ext will take the command.
-    for (keys %$all_commands) {
-      delete $all_commands->{$_};
+# this function builds a list of valid commands/programs within a directory,
+# it will be run several times for different kinds of command
+sub get_commands_by_dir {
+  my $base_dir = shift;		#directory to search
+  my $updated_time = shift;	#reference to last time directory was searched
+  my $commands_ref = shift;	#reference to hash of commands
+
+  opendir DIRHANDLE, $base_dir or return 0; #bad status
+  if ((stat(DIRHANDLE))[9] > $$updated_time) {
+    #the directory has been changed, clear the hash and build a new one
+    for (keys %$commands_ref) {
+      delete $commands_ref->{$_};
     }
 
     while (my $file = readdir(DIRHANDLE)) {
-      if (! -f "$programsdir/$file" or ! -x "$programsdir/$file") {
-        # this one is either a directory or not executable
+      if (! -f "$base_dir/$file" or ! -x "$base_dir/$file") {
+        #this is either a directory or non-executable file
         next;
       }
-      if ($file =~ m/(\w+)\.\w+/) {
-        $all_commands->{$1} = $programsdir . '/' . $file;
+      if ($file =~ m/(\w+).\w+/) {
+        #this file is executable and has an extension
+        $commands_ref->{$1} = $base_dir . '/' . $file;
       } else {
-        print STDERR "Can't parse command '$programsdir' '$file'\n";
+        print STDERR "Can't parse command '$base_dir' '$file'\n";
         next;
       }
     }
-    
-    #mark list as up to date
-    $commands_time = (stat(DIRHANDLE))[9]; 
-    print "Updated ?commands hash\n";
+
+    #mark the list as updated
+    $$updated_time = (stat(DIRHANDLE))[9];
+    print "Updated commands hash for '$base_dir'.\n";
   }
   closedir DIRHANDLE;
-  return;
+  return 1; #good status
 }
-#run this once at startup;
-&update_commands;
+
+my $all_commands = {};
+my $all_commands_time = 0;
+&get_commands_by_dir($programsdir, \$all_commands_time, $all_commands) or die "No programsdir, you need one of those.\n";
+
+my $log_commands = {};
+my $log_commands_time = 0;
+&get_commands_by_dir("$programsdir/log", \$log_commands_time, $log_commands) or print "No log directory in programsdir.\n";
 
 #create a new POE-IRC object
 my $irc = POE::Component::IRC->spawn(nick    => $nickname,
@@ -114,7 +126,7 @@ sub irc_public {
     $lcasecmd =~ tr/A-Z/a-z/;
 
     #update the list of programs
-    &update_commands;
+    &get_commands_by_dir($programsdir, \$all_commands_time, $all_commands) or print STDERR "Programs directory seems to have vanished, probably about to fail to run a command in there\n";
 
     #see if the command exists
     if (!$all_commands->{$lcasecmd}) {
@@ -134,7 +146,7 @@ sub irc_public {
     # more than one argument. We need to eval this, or we will exit if the command
     # returns non zero status.
     eval {
-      @output = capture($all_commands->{$lcasecmd}, $nick, $channel, $channel, $argline);
+      @output = capture($all_commands->{$lcasecmd}, $nick, $channel, $channel, $argline, $lcasecmd);
     };
     if ($@) {
       $irc->yield( privmsg => $channel => "Sorry $nick, $lcasecmd is on fire." );
@@ -145,6 +157,31 @@ sub irc_public {
   }
 
   #TODO we need to at least check for user pownces at least here
+
+  #This runs the "log" commands, we do not log these, care must be taken to make them lean, unspammy and few.
+  #Update the list of log commands
+  &get_commands_by_dir("$programsdir/log", \$log_commands_time, $log_commands);
+
+  #the scripts expect their working directory to be the log commands directory
+  chdir "$programsdir/log";
+
+  #run each log command
+  while ( my ($log_command, $log_command_path) = each(%$log_commands) ) {
+    #run the log command
+    eval {
+      @output = capture($log_command_path, $nick, $channel, $channel, printable($what), $log_command, 'log');
+    };
+    if ($@) {
+      #The STDERR of failing commands is already directed to the console, just abort this command
+      next;
+    }
+
+    #say what needs to be seaid
+    for my $line (@output) {
+      $irc->yield( privmsg => $channel => $line);
+    }
+    
+  }
 
   return;
 }
@@ -164,7 +201,7 @@ sub irc_msg {
     $lcasecmd =~ tr/A-Z/a-z/;
 
     #update the list of programs
-    &update_commands;
+    &get_commands_by_dir($programsdir, \$all_commands_time, $all_commands) or print STDERR "Programs directory seems to have vanished, probably about to fail to run a command in there\n";
 
     #see if the command exists
     if (!$all_commands->{$lcasecmd}) {
