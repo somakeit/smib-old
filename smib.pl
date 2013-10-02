@@ -7,12 +7,10 @@ use POE qw(Component::IRC Component::IRC::Plugin::Connector Component::IRC::Plug
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
 
-#my $nickname    = 'smib';
-my $nickname    = 'xbmc';
+my $nickname    = 'smib';
 my $password    = 'do_not_check_me_in';
 my $ircname     = 'So Make It Bot';
-#my $programsdir = '/home/irccat/scripts/';
-my $programsdir = '/home/xbmc/irccat-commands/';
+my $programsdir = '/home/irccat/scripts/';
 my $server      = 'holmes.freenode.net';
 my @channels    = ('#smibtest');#, '#southackton', '#somakeit');
 # Flood control is built in, defauts for now.
