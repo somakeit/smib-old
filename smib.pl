@@ -12,7 +12,7 @@ my $password    = 'do_not_check_me_in';
 my $ircname     = 'So Make It Bot';
 my $programsdir = '/home/irccat/scripts/';
 my $server      = 'holmes.freenode.net';
-my @channels    = ('#smibtest');#, '#southackton', '#somakeit');
+my @channels    = ('#smibtest', '#southackton', '#somakeit');
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
