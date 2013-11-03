@@ -6,13 +6,16 @@ use warnings;
 use POE qw(Component::IRC Component::IRC::Plugin::Connector Component::IRC::Plugin::NickServID);
 use IPC::System::Simple qw(capture);
 use String::Escape qw(printable);
+use POE qw(Component::Server::TCP);
 
 my $nickname    = 'smib';
 my $password    = 'do_not_check_me_in';
 my $ircname     = 'So Make It Bot';
 my $programsdir = '/home/irccat/scripts/';
 my $server      = 'holmes.freenode.net';
-my @channels    = ('#smibtest', '#southackton', '#somakeit');
+#the first channel is the default channel for messages recieved via TCP etc.
+my @channels    = ('#southackton', '#smibtest', '#somakeit');
+my $listen_port = '1337';
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
@@ -72,7 +75,12 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
 POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter) ],],
                      heap           => { irc => $irc },);
 
-#and finally, start it
+# Now we're ready to run IRC, set up a TCP server to listen on a port for stuff to say
+POE::Component::Server::TCP->new(
+  Port        => $listen_port,
+  ClientInput => \&listen_port_handler); 
+
+#and finally, start the POE kernel
 $poe_kernel->run();
 
 sub _start {
@@ -255,4 +263,9 @@ sub lag_o_meter {
   print 'Lag: ' . $heap->{connector}->lag() . "\n";
   $kernel->delay( 'lag_o_meter' => 60 );
   return;
+}
+
+sub listen_port_handler {
+  my $line = $_[ARG0];
+  $irc->yield( privmsg => $channels[0] => $line );
 }
