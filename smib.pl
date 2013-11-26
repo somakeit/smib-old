@@ -5,7 +5,6 @@ use warnings;
 
 use POE qw(Component::IRC Component::IRC::Plugin::Connector Component::IRC::Plugin::NickServID);
 use IPC::System::Simple qw(capture);
-use String::Escape qw(printable);
 use POE qw(Component::Server::TCP);
 
 my $nickname    = 'smib';
@@ -130,6 +129,7 @@ sub irc_public {
     
     my $lcasecmd = $1;
     $lcasecmd =~ tr/A-Z/a-z/;
+    my $argline = $2;
 
     #update the list of programs
     &get_commands_by_dir($programsdir, \$all_commands_time, $all_commands) or print STDERR "Programs directory seems to have vanished, probably about to fail to run a command in there\n";
@@ -139,10 +139,6 @@ sub irc_public {
       $irc->yield( privmsg => $channel  => "Sorry $nick, I don't have a $lcasecmd command." );
       return;
     }
-
-    # Take what the user typed after the command less the space and escape what we need to.
-    # This is not a security feature.
-    my $argline = printable($2);
 
     # the scripts need their working directory to be the programsdir
     # we probably don't ever need another working directory
@@ -175,7 +171,7 @@ sub irc_public {
   while ( my ($log_command, $log_command_path) = each(%$log_commands) ) {
     #run the log command
     eval {
-      @output = capture($log_command_path, $nick, $channel, $channel, printable($what), $log_command, 'log');
+      @output = capture($log_command_path, $nick, $channel, $channel, $what, $log_command, 'log');
     };
     if ($@) {
       #The STDERR of failing commands is already directed to the console, just abort this command
@@ -205,6 +201,7 @@ sub irc_msg {
 
     my $lcasecmd = $1;
     $lcasecmd =~ tr/A-Z/a-z/;
+    my $argline = $2;
 
     #update the list of programs
     &get_commands_by_dir($programsdir, \$all_commands_time, $all_commands) or print STDERR "Programs directory seems to have vanished, probably about to fail to run a command in there\n";
@@ -214,10 +211,6 @@ sub irc_msg {
       $irc->yield( privmsg => $nick  => "Sorry, I don't have a $lcasecmd command." );
       return;
     }
-
-    # Take what the user typed after the command less the space and escape what we need to.
-    # This is not a security feature.
-    my $argline = printable($2);
 
     # the scripts need their working directory to be the programsdir
     # we probably don't ever need another working directory
