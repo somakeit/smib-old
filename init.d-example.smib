@@ -22,8 +22,8 @@ start() {
     return 1
   fi
   echo 'Starting service…' >&2
-  local CMD="$SCRIPT 2>&1 | logger -t 'smib' & echo \$!"
-  su -c "$CMD" $RUNAS > "$PIDFILE"
+  local CMD="($SCRIPT 2>&1 & echo \$! >&3) | logger -t 'smib' & 3>\"$PIDFILE\""
+  su -c "$CMD" $RUNAS
   echo 'Service started' >&2
 }
  
