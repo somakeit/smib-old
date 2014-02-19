@@ -11,7 +11,7 @@
 # configure the following and copy this file to: /etc/init.d/smib
 # then run: update-rc.d smib defaults
 
-SCRIPT=/home/smib/smib.pl
+SCRIPT=/home/smib/smib/smib.pl
 RUNAS=smib
  
 PIDFILE=/var/run/smib.pid
