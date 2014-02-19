@@ -22,7 +22,7 @@ start() {
     return 1
   fi
   echo 'Starting service…' >&2
-  su -c "$SCRIPT 2>&1 & echo \$!>\"$PIDFILE\" | logger -t 'smib'" "$RUNAS"
+  su -c "$SCRIPT 2>&1 | logger -t 'smib'" "$RUNAS" & jobs -p >"$PIDFILE"
   echo 'Service started' >&2
 }
  
