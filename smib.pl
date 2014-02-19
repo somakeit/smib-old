@@ -10,10 +10,10 @@ use POE qw(Component::Server::TCP);
 my $nickname    = 'smib';
 my $password    = 'do_not_check_me_in';
 my $ircname     = 'So Make It Bot';
-my $programsdir = '/home/irccat/scripts/';
+my $programsdir = '/home/smib/smib-commands/';
 my $server      = 'holmes.freenode.net';
 #the first channel is the default channel for messages recieved via TCP etc.
-my @channels    = ('#southackton', '#smibtest', '#somakeit');
+my @channels    = ('#somakeit', '#smibtest', '#southackton');
 my $listen_port = '1337';
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want

@@ -6,10 +6,10 @@ Description=So Make It Bot
 After=network.target
 
 [Service]
-WorkingDirectory=/home/irccat/
-ExecStart=/home/irccat/smib/smib.pl
-User=irccat
-Group=irccat
+WorkingDirectory=/home/smib/
+ExecStart=/home/smib/smib/smib.pl
+User=smib
+Group=smib
 Restart=always
 
 [Install]
