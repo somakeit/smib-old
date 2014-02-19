@@ -15,7 +15,6 @@ SCRIPT=/home/smib/smib/smib.pl
 RUNAS=smib
  
 PIDFILE=/var/run/smib.pid
-LOGFILE=/var/log/smib.log
  
 start() {
   if [ -f /var/run/$PIDNAME ] && kill -0 $(cat /var/run/$PIDNAME); then
@@ -23,7 +22,7 @@ start() {
     return 1
   fi
   echo 'Starting service…' >&2
-  local CMD="$SCRIPT &> \"$LOGFILE\" & echo \$!"
+  local CMD="$SCRIPT 2>&1 | logger -t 'smib' & echo \$!"
   su -c "$CMD" $RUNAS > "$PIDFILE"
   echo 'Service started' >&2
 }
