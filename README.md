@@ -36,4 +36,8 @@ General
 Scripts are run with full privialages of the user which runs smib, appropriare care should be taken to vette scripts.
 Anything a script prints to STDERR will be printed to STDERR by smib.
 Script can also mean compiled program.
+    iptables -A OUTPUT -m owner --uid-owner 1001 -p udp --destination-port 53 -d 10.0.0.1 -j ACCEPT     # Where 1001 is smib's user's uid and 10.0.0.1 is the dns server in the router
+    iptables -A OUTPUT -m owner --uid-owner 1001 -d 10.0.0.0/8 -j REJECT
+    iptables -A OUTPUT -m owner --uid-owner 1001 -d 192.168.0.0/16 -j REJECT
+    iptables -A OUTPUT -m owner --uid-owner 1001 -d 127.0.0.0/8 -j REJECT
 
