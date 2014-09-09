@@ -135,10 +135,19 @@ sub irc_public {
     &get_commands_by_dir($programsdir, \$all_commands_time, $all_commands) or print STDERR "Programs directory seems to have vanished, probably about to fail to run a command in there\n";
 
     #see if the command exists
-    if (!$all_commands->{$lcasecmd}) {
-      $irc->yield( privmsg => $channel  => "Sorry $nick, I don't have a $lcasecmd command." );
+    my $command = get_command($all_commands, $lcasecmd);
+    if (!defined $command) {
+      $irc->yield( privmsg => $channel
+                   => "Sorry $nick, I don't have a $lcasecmd command." );
+      return;
+    } elsif (ref $command) {
+      $irc->yield( privmsg => $channel
+                   => "Sorry $nick, I don't have a $lcasecmd command was ".
+                      "not unique, try one of @$command." );
       return;
     }
+
+    my $script = $all_commands->{$command};
 
     # the scripts need their working directory to be the programsdir
     # we probably don't ever need another working directory
@@ -148,7 +157,7 @@ sub irc_public {
     # more than one argument. We need to eval this, or we will exit if the command
     # returns non zero status.
     eval {
-      @output = capture($all_commands->{$lcasecmd}, $nick, $channel, $channel, $argline, $lcasecmd);
+      @output = capture($script, $nick, $channel, $channel, $argline, $lcasecmd);
     };
     if ($@) {
       $irc->yield( privmsg => $channel => "Sorry $nick, $lcasecmd is on fire." );
@@ -186,6 +195,30 @@ sub irc_public {
   }
 
   return;
+}
+
+sub get_command {
+  my ($commands, $command) = @_;
+
+  # first try exact command
+  if (exists $commands->{$command}) {
+    return $command;
+  }
+  my @res;
+  # find any and all matching given prefix
+  foreach my $key (keys %$all_commands) {
+    if ($command eq substr $key, 0, length $command) {
+      push @res, $key;
+    }
+  }
+  # if there is only one then use that
+  if (@res == 1) {
+    return $res[0];
+  }
+  # if there are none, return undefined
+  return unless (@res);
+  # if there are several, return the list reference
+  return \@res;
 }
 
 # like when someone says somthing with /msg us
