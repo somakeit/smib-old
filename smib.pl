@@ -11,7 +11,7 @@ my $nickname    = 'smib';
 my $password    = 'do_not_check_me_in';
 my $ircname     = 'So Make It Bot';
 my $programsdir = '/home/smib/smib-commands/';
-my $server      = 'holmes.freenode.net';
+my $server      = 'chat.freenode.net';
 #the first channel is the default channel for messages recieved via TCP etc.
 my @channels    = ('#somakeit', '#smibtest', '#southackton');
 my $listen_port = '1337';
