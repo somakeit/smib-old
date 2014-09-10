@@ -167,8 +167,6 @@ sub irc_public {
     $irc->yield( privmsg => $channel => $line );
   }
 
-  #TODO we need to at least check for user pownces at least here
-
   #This runs the "log" commands, we do not log these, care must be taken to make them lean, unspammy and few.
   #Update the list of log commands
   &get_commands_by_dir("$programsdir/log", \$log_commands_time, $log_commands);
@@ -253,7 +251,7 @@ sub irc_msg {
     # more than one argument. We need to eval this, or we will exit if the command
     # returns non zero status.
     eval {
-      @output = capture($all_commands->{$lcasecmd}, $nick, 'null', $nick, $argline);
+      @output = capture($all_commands->{$lcasecmd}, $nick, 'null', $nick, $argline, $lcasecmd);
     };
     if ($@) {
       $irc->yield( privmsg => $nick => "Sorry, $lcasecmd is on fire." );
