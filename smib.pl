@@ -142,8 +142,8 @@ sub irc_public {
       return;
     } elsif (ref $command) {
       $irc->yield( privmsg => $channel
-                   => "Sorry $nick, I don't have a $lcasecmd command was ".
-                      "not unique, try one of @$command." );
+                   => "Sorry $nick, I don't have a $lcasecmd command, ".
+                      "or that wasn't unique, try one of @$command." );
       return;
     }
 
