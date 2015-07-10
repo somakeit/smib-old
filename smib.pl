@@ -13,7 +13,7 @@ my $ircname     = 'So Make It Bot';
 my $programsdir = '/home/smib/smib-commands/';
 my $server      = 'chat.freenode.net';
 #the first channel is the default channel for messages recieved via TCP etc.
-my @channels    = qw(#somakeit #smibtest #southakcton);
+my @channels    = qw(#somakeit #smibtest #southackton);
 my $listen_port = '1337';
 my $CONNECT_TIMEOUT = 120;
 # Flood control is built in, defauts for now.
