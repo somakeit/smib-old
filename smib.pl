@@ -13,8 +13,9 @@ my $ircname     = 'So Make It Bot';
 my $programsdir = '/home/smib/smib-commands/';
 my $server      = 'chat.freenode.net';
 #the first channel is the default channel for messages recieved via TCP etc.
-my @channels    = ('#somakeit', '#smibtest', '#southackton');
+my @channels    = qw(#somakeit #smibtest #southakcton);
 my $listen_port = '1337';
+my $CONNECT_TIMEOUT = 120;
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
@@ -71,7 +72,7 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
 
 # For debug, add _default to the list of evernts to catch, it can show what event your new feature might
 # want to use. Do the thing in IRC then view the log.
-POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter) ],],
+POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter initial_connect) ],],
                      heap           => { irc => $irc },);
 
 # Now we're ready to run IRC, set up a TCP server to listen on a port for stuff to say
@@ -97,7 +98,10 @@ sub _start {
   # load the nickservid plugin, it registers with nickserv whenever
   $irc->plugin_add( 'NickServID', POE::Component::IRC::Plugin::NickServID->new( Password => $password ));
 
+  print 'Connecting to ', $server, "\n";
   $irc->yield( connect => { } );
+  $poe_kernel->alarm_add(initial_connect => time() + $CONNECT_TIMEOUT);
+
   return;
 }
 
@@ -113,6 +117,16 @@ sub irc_001 {
 
   # we join our channels
   $irc->yield( join => $_ ) for @channels;
+  return;
+}
+
+sub initial_connect {
+  if (! $irc->connected) {
+    print 'Timed out connecting to ', $server, " re-trying now.\n";
+    $irc->yield( connect => { } );
+    $poe_kernel->alarm_add(initial_connect => time() + $CONNECT_TIMEOUT);
+  }
+
   return;
 }
 
