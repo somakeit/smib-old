@@ -14,6 +14,7 @@ my $programsdir = '/home/smib/smib-commands/';
 my $server      = 'chat.freenode.net';
 #the first channel is the default channel for messages recieved via TCP etc.
 my @channels    = qw(#somakeit #smibtest #southackton);
+my $accept_invites = 1;
 my $listen_port = '1337';
 my $CONNECT_TIMEOUT = 120;
 # Flood control is built in, defauts for now.
@@ -72,7 +73,7 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
 
 # For debug, add _default to the list of evernts to catch, it can show what event your new feature might
 # want to use. Do the thing in IRC then view the log.
-POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter initial_connect) ],],
+POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter initial_connect irc_invite) ],],
                      heap           => { irc => $irc },);
 
 # Now we're ready to run IRC, set up a TCP server to listen on a port for stuff to say
@@ -128,6 +129,16 @@ sub initial_connect {
   }
 
   return;
+}
+
+sub irc_invite {
+  print 'Invited to ', $_[ARG1], ' by ', $_[ARG0];
+  if ($accept_invites) {
+    print ", joining channel.\n";
+    $irc->yield( join => $_[ARG1] );
+  } else {
+    print ", ignoring this.\n";
+  }
 }
 
 # like when someone says somthing in a channel
