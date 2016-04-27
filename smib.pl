@@ -141,7 +141,7 @@ sub background_command {
   if ($irc->connected) {
     &get_commands_by_dir("$programsdir/background", \$background_commands_time, $background_commands) or die "No backround directory in programsdir.\n";
 
-    chdir "$programsdir/log";
+    chdir "$programsdir/background";
 
     my @output;
 
