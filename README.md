@@ -15,7 +15,7 @@ Anything your script prints to STDOUT will be said where the command was invoked
 
 Logging
 -------
-Your script can trigger on anything anyone says, in a channel or directly, by placing a link or script in the log directory, eg: ./log/myscript
+Your script can trigger on anything anyone says, in a channel or directly, by placing a link or script in the log directory, eg: ./log/myscript. Smib will queue other commands while processing log scripts, so keep them short and time out fast.
 
 Your script will be called with these arguments in the case of a log:
  * $1 - User, Nick of the person who spoke.
@@ -27,9 +27,23 @@ Your script will be called with these arguments in the case of a log:
 
 Anything your script prints to STDOUT will be said where the command was invoked by smib.
 
+Logging
+-------
+Your script can trigger in the background once a minute (plus background scripts running time), by placing a link or script in the background directory, eg: ./background/myscript. Smib will queue other commands while processing background scripts, so keep them short and time out fast.
+
+Your script will be called with these arguments in the case of a log:
+ * $1 - 'null'.
+ * $2 - 'null'.
+ * $3 - 'null'.
+ * $4 - 'null'.
+ * $5 - The command.
+ * $6 - 'background'.
+
+Anything your script prints to STDOUT will be said in the first channel smib joined.
+
 Listen Port
 -----------
-Smib will listen on a TCP port (default 1337), anything you send to that port will be said in the first channel smib is connected to.
+Smib will listen on a TCP port (default 1337), anything you send to that port will be said in the first channel smib joined.
 
 General
 -------

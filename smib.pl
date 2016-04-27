@@ -17,6 +17,7 @@ my @channels    = qw(#somakeit #smibtest #southackton);
 my $accept_invites = 1;
 my $listen_port = '1337';
 my $CONNECT_TIMEOUT = 120;
+my $BACKGROUND_PERIOD = 60;
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
@@ -65,6 +66,10 @@ my $log_commands = {};
 my $log_commands_time = 0;
 &get_commands_by_dir("$programsdir/log", \$log_commands_time, $log_commands) or print "No log directory in programsdir.\n";
 
+my $background_commands = {};
+my $background_commands_time = 0;
+&get_commands_by_dir("$programsdir/background", \$background_commands_time, $background_commands) or die "No backround directory in programsdir.\n";
+
 #create a new POE-IRC object
 my $irc = POE::Component::IRC->spawn(nick    => $nickname,
                                      ircname => $ircname,
@@ -73,7 +78,7 @@ my $irc = POE::Component::IRC->spawn(nick    => $nickname,
 
 # For debug, add _default to the list of evernts to catch, it can show what event your new feature might
 # want to use. Do the thing in IRC then view the log.
-POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter initial_connect irc_invite) ],],
+POE::Session->create(package_states => [main => [ qw(_start irc_001 irc_public irc_msg lag_o_meter initial_connect irc_invite background_command) ],],
                      heap           => { irc => $irc },);
 
 # Now we're ready to run IRC, set up a TCP server to listen on a port for stuff to say
@@ -102,6 +107,7 @@ sub _start {
   print 'Connecting to ', $server, "\n";
   $irc->yield( connect => { } );
   $poe_kernel->alarm_add(initial_connect => time() + $CONNECT_TIMEOUT);
+  $poe_kernel->alarm_add(background_command => time() + $BACKGROUND_PERIOD);
 
   return;
 }
@@ -129,6 +135,31 @@ sub initial_connect {
   }
 
   return;
+}
+
+sub background_command {
+  if ($irc->connected) {
+    &get_commands_by_dir("$programsdir/background", \$background_commands_time, $background_commands) or die "No backround directory in programsdir.\n";
+
+    chdir "$programsdir/log";
+
+    my @output;
+
+    while ( my ($background_command, $background_command_path) = each(%$background_commands) ) {
+      eval {
+        @output = capture($background_command_path, 'null', 'null', 'null', 'null', $background_command, 'background');
+      };
+      if ($@) {
+        #The STDERR of failing commands is already directed to the console, just abort this command
+        next;
+      }
+
+      for my $line (@output) {
+        $irc->yield( privmsg => $channels[0] => $line);
+      }
+    }
+  }
+  $poe_kernel->alarm_add(background_command => time() + $BACKGROUND_PERIOD);
 }
 
 sub irc_invite {
