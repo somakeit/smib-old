@@ -18,6 +18,7 @@ my $accept_invites = 1;
 my $listen_port = '1337';
 my $CONNECT_TIMEOUT = 120;
 my $BACKGROUND_PERIOD = 60;
+my $FORCE_CHAN = "FORCE_CHANNEL:";
 # Flood control is built in, defauts for now.
 # Use perldoc POE::Component::IRC if you want
 # to configure it.
@@ -182,7 +183,7 @@ sub irc_public {
   my @output;
   if ($what =~ m/^\?(\w+) {0,1}(.*)/) {
     print "Caught irc_public as ?command channel: '$channel' who: '$who' what: '$what'\n";
-    
+
     my $lcasecmd = $1;
     $lcasecmd =~ tr/A-Z/a-z/;
     my $argline = $2;
@@ -207,7 +208,7 @@ sub irc_public {
 
     # the scripts need their working directory to be the programsdir
     # we probably don't ever need another working directory
-    chdir $programsdir; 
+    chdir $programsdir;
 
     # now we run the command, caprure() will NOT invoke a shell if it is called with
     # more than one argument. We need to eval this, or we will exit if the command
@@ -219,6 +220,11 @@ sub irc_public {
       $irc->yield( privmsg => $channel => "Sorry $nick, $lcasecmd is on fire." );
     }
   }
+
+  if ($output[0] =~ m/^\Q$FORCE_CHAN/) {
+    shift @output;
+  }
+
   for my $line (@output) {
     $irc->yield( privmsg => $channel => $line );
   }
@@ -245,7 +251,7 @@ sub irc_public {
     for my $line (@output) {
       $irc->yield( privmsg => $channel => $line);
     }
-    
+
   }
 
   return;
@@ -301,7 +307,7 @@ sub irc_msg {
 
     # the scripts need their working directory to be the programsdir
     # we probably don't ever need another working directory
-    chdir $programsdir; 
+    chdir $programsdir;
 
     # now we run the command, caprure() will NOT invoke a shell if it is called with
     # more than one argument. We need to eval this, or we will exit if the command
@@ -313,6 +319,15 @@ sub irc_msg {
       $irc->yield( privmsg => $nick => "Sorry, $lcasecmd is on fire." );
     }
   }
+
+  if ($output[0] =~ m/^\Q$FORCE_CHAN/) {
+    shift @output;
+    for my $line (@output) {
+      $irc->yield( privmsg => $channels[0] => $line );
+    }
+    return;
+  }
+
   for my $line (@output) {
     $irc->yield( privmsg => $nick => $line );
   }
